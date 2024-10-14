@@ -1,0 +1,76 @@
+---
+title: "Projet HAB928B Modélisation et Quantification"
+author: "Edouard DISTIN CARVALHO - Anthony MARCHAND - Leander BECKET"
+date: "2024-09-19"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+getwd()
+setwd("C:/Users/edoua/OneDrive/Documents/Fac/Cours/UM/S3/Modélisation et quantification/datasets/Projet Modélisation")
+```
+
+# Sujet 1 en Statistique : La consommation alimentaire de la barge hudsonnienne
+
+
+### Chargement et mise en forme des données
+```{r données}
+limosa <- read.table(file = "Limosa.txt", header = TRUE, sep = "\t")
+str(limosa)
+limosa$fID <- factor(limosa$ID)
+limosa$fPeriod <- factor(limosa$Period, levels=c(0,1,2),
+
+labels=c("Summer","LSummer.Fall","Winter"))
+limosa$fSex <- factor(limosa$Sex, levels = c(0,1,2), labels=c("Unk","F","M"))
+limosa$fID <- factor(limosa$ID)
+```
+
+**Objectifs**
+
+**Est ce que la consommation alimentaire dépend de la période de migration, de l’instant d’ingestion mesuré en fonction de la marée basse, du sexe, du jour échantillonné et des éventuelles interactions entre ces variables?** 
+
+
+```{r library, include=FALSE }
+library(gtsummary)
+library(ggplot2)
+library(lme4)
+```
+
+Dans un premier temps, nous allons réaliser une analyse exploratoire à l'aide de graphique que nous contruirons grâce au packages "ggplot2". 
+
+```{r Graohique Nourriture en fonction de la période}
+plot(limosa$fPeriod, limosa$IntakeRate)
+ggplot(limosa) + 
+  geom_point(aes(x = Time, y = IntakeRate, color = fPeriod)) + geom_smooth(aes(x = Time, y = IntakeRate, color = fPeriod), method = "lm")
+```
+
+Dans le premier boxplot représente la nourriture en quantité de matière sèche ingérée par seconde de consommation ingéré par seconde en fonction de la période. L'été semble être la période où la quantité de nourriture ingéré est la plus importante malgré une médiane inférieure aux autres périodes. La période après l'été et l'hiver semble être assez proche.  
+Dans le deuxième graphique, la quantité de nourriture ingéré en fonction de la période et de l'instant (en heure) d'ingestion avant ou après la marée. La fonction geo_smooth applique un modèle linéaire idéaliste qui révèle les tendances de la distribution des données. Nous voyons que la quantité de nourriture ingéré varie selon les périodes. En hiver, elle augmente plus les oiseaux ont ingéré la nourriture longtemps après de la marée tandis qu'elle diminue en automne et en été plus les oiseaux ont consommé la nouriture longtemps après la marée. 
+
+
+```{r Graohique Nourriture en fonction du sexe}
+plot(limosa$fSex, limosa$IntakeRate)
+ggplot(limosa) + 
+  geom_point(aes(x = Time, y = IntakeRate, color = fSex)) + 
+  geom_smooth(aes(x=Time, y = IntakeRate, color = fSex), method = "lm")
+```
+
+Dans le premier boxplot représente la nourriture en quantité de matière sèche ingérée par seconde de consommation ingéré par seconde en fonction du sexe des oiseaux échantillonés. Dans l'échantillonnage, il y a eu plus d'oiseaux dont le sexe était non identifiable que les autres identifié, d'où une boxplot plus importante pour la catégorie "Unknow" que les autres sexes. Par rapports aux deux sexes, les mâles semblent consommés plus de nourriture que les femelles avec de grandes différences entre les deux sexes.
+
+Dans le deuxième graphique, la quantité de nourriture ingéré en fonction dedu sexe et de l'instant (en heure) d'ingestion avant ou après la marée. Plus l'instant de consomation est longtemps après la marée, plus la quantité de nourriture ingéré chez les mâles diminue et inversement chez les femelles où elles semblent augmenter. 
+
+```{r Graohique Nourriture en fonction du jour de collecte et de la periode}
+plot(limosa$fID, limosa$IntakeRate)
+ggplot(limosa) + 
+  geom_point(aes(x = fID, y = IntakeRate, color = fPeriod))
+```
+Le boxplot nous montre une hétérogénéité dans la collecte des données en fonction des jours. Les médianes varient de manières très hétérogène nottament pour les jours 17 et 19 qui sont beaucoup plus important que les autres jours de collctes. Dans ce graphique, nous voyons que les variables du jours de collecte et de la période semblent être corélées entre-elle. En effet, les jours 2 à 5 correspondent aux jours échantillonés en automne, tandis que les jours 7 à 12 en hiver et enfin 13 à 1 (13 à 20 puis retour à 1) correspondent à l'été. 
+
+```{r Graohique Nourriture en fonction du jour de collecte et du sexe}
+ggplot(limosa) + 
+  geom_point(aes(x = fID, y = IntakeRate, color = fSex))
+```
+Ici, nous voyons que les sexes sont retrouvées de manières aléatoires pendant l'échantillonnage sans distribution précises. Une association entre les deux variables pourrait être considéré comme un facteur aléatoire. 
